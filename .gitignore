@@ -1,9 +1,15 @@
 *.log
 __pycache__/
 
-# 由 capture.cjs / test-mobile.cjs 生成的截图
-route-map.png
+# 本地构建和测试缓存
+.vendor-build/
+.npm-cache/
 mobile-preview.png
+album-mobile-preview.png
+route-map.png
+.photo-source/
+background-contact-sheet.jpg
+album-page-*.png
 
 # 与 index.html 内容相同的副本
 qinggan-map.html

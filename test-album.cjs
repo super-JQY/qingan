@@ -1,0 +1,16 @@
+const {chromium}=require('C:/Users/jiaqiuyun/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');
+(async()=>{
+ const browser=await chromium.launch({headless:true,channel:'msedge'});let errors=[];
+ const page=await browser.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true,deviceScaleFactor:2});
+ page.on('pageerror',e=>errors.push(e.message));
+ await page.goto('http://127.0.0.1:8765/index.html');await page.waitForTimeout(1500);
+ for(const width of [320,390,430,768,1200]){
+  await page.setViewportSize({width,height:900});await page.waitForTimeout(350);
+  const result=await page.evaluate(()=>({width:innerWidth,overflow:document.documentElement.scrollWidth>innerWidth,pageCount:document.querySelectorAll('.page').length,scenicCount:document.querySelectorAll('.page.scenic').length,bookReady:!!document.querySelector('.stf__parent'),mapLink:document.querySelector('.map-link').getAttribute('href'),hasBothXining:document.documentElement.innerHTML.includes('海友酒店（西宁火车站店）')&&document.documentElement.innerHTML.includes('IU酒店（西宁火车站高铁站店）')}));
+  console.log(JSON.stringify(result));if(result.overflow||result.pageCount!==10||result.scenicCount!==10||!result.bookReady||result.mapLink!=='map.html'||!result.hasBothXining)throw Error('album layout failed');
+ }
+ await page.setViewportSize({width:390,height:844});await page.waitForTimeout(300);const before=await page.locator('#counter').innerText();const flipStarted=Date.now();await page.locator('#next').click();await page.waitForFunction(value=>document.querySelector('#counter').textContent!==value,before,{timeout:700});const flipResponseMs=Date.now()-flipStarted;const after=await page.locator('#counter').innerText();if(before===after||flipResponseMs>600)throw Error('next page response too slow');const prevStarted=Date.now();await page.locator('#prev').click();await page.waitForFunction(value=>document.querySelector('#counter').textContent===value,before,{timeout:500});const prevResponseMs=Date.now()-prevStarted;if(prevResponseMs>350)throw Error('previous page response too slow');await page.screenshot({path:'C:/Users/jiaqiuyun/Documents/ai-study/output/qinggan-map/album-mobile-preview.png',fullPage:true});
+ const backgrounds=await page.evaluate(async()=>{const urls=[...document.querySelectorAll('.page.scenic')].map(p=>getComputedStyle(p).getPropertyValue('--page-bg').match(/url\(["']?(.*?)["']?\)/)[1]);return Promise.all(urls.map(src=>new Promise(resolve=>{const image=new Image();image.onload=()=>resolve({src,ok:image.naturalWidth>0});image.onerror=()=>resolve({src,ok:false});image.src=src}))) });if(backgrounds.some(x=>!x.ok))throw Error('background image failed');
+ await page.goto('http://127.0.0.1:8765/map.html');await page.waitForTimeout(1500);if(await page.locator('.night').count()!==8)throw Error('map failed');const back=page.locator('.back-to-book');if(await back.getAttribute('href')!=='index.html'||!(await back.isVisible()))throw Error('back-to-book button failed');await back.click();await page.waitForURL('**/index.html');
+ console.log(JSON.stringify({errors,pageFlip:true,flipResponseMs,prevPage:true,prevResponseMs,map:true,backToBook:true}));if(errors.length)throw Error(errors.join('; '));await browser.close();
+})().catch(e=>{console.error(e);process.exit(1)});
