@@ -1,0 +1,9 @@
+*.log
+__pycache__/
+
+# 由 capture.cjs / test-mobile.cjs 生成的截图
+route-map.png
+mobile-preview.png
+
+# 与 index.html 内容相同的副本
+qinggan-map.html
